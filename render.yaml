@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: tidal-proxy
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
