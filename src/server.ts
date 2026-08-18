@@ -8,6 +8,7 @@ const PORT = Number(process.env.PORT) || 3000;
 
 const ALLOWED_AUDIO_HOSTS = new Set([
   "sp-ad-fa.audio.tidal.com",
+  "sp-ad-cf.audio.tidal.com",
 ]);
 
 app.get("/proxy/segment", async (request, reply) => {
