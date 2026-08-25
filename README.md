@@ -1,5 +1,8 @@
 # TIDAL Proxy
 
+> [!important]
+> To keep the [TIDAL DL](https://tidal-dl.pages.dev) running, we need more proxy instances. Currently we have few instances which can last up to few more days. We need you to clone this repo on Render and deploy a new instance and submit to us so we can add your instance to proxy monitor and keep TIDAL DL running until we start receiving donations. Join our Discord server to submit your proxy instance.
+
 A lightweight **Fastify-based proxy for TIDAL audio segments**.
 
 TIDAL sometimes return audio segments from different CDN hosts. In particular, some `sp-ad-fa.audio.tidal.com` segments may return `403 Forbidden` when requested directly from a browser, while the same signed segment URL can be successfully retrieved from a server.
