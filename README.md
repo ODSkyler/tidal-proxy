@@ -263,3 +263,7 @@ The proxy does not bypass TIDAL authentication or generate TIDAL credentials. It
 ## License
 
 This project is licensed under **MIT License**.
+
+## Author
+
+Made with ❤️ by OD Skyler
