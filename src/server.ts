@@ -11,6 +11,11 @@ const ALLOWED_AUDIO_HOSTS = new Set([
   "sp-ad-cf.audio.tidal.com",
 ]);
 
+const ALLOWED_ORIGINS = new Set([
+  "https://tidal-dl.pages.dev",
+  "https://tidal.odskyler.com",
+]);
+
 app.get("/proxy/segment", async (request, reply) => {
   const { url } = request.query as { url?: string };
 
@@ -83,14 +88,16 @@ app.get("/proxy/segment", async (request, reply) => {
     /*
      * CORS
      */
-    reply.header(
-      "Access-Control-Allow-Origin",
-      "https://tidal-dl.pages.dev",
-    );
+    const origin = request.headers.origin;
 
-    reply.header(
-      "Access-Control-Expose-Headers",
-      "Content-Length, Content-Range, Accept-Ranges, ETag",
+    if (origin && ALLOWED_ORIGINS.has(origin)) {
+       reply.header("Access-Control-Allow-Origin", origin);
+       reply.header("Vary", "Origin");
+    }
+
+     reply.header(
+       "Access-Control-Expose-Headers",
+       "Content-Length, Content-Range, Accept-Ranges, ETag",
     );
 
     /*
