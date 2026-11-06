@@ -11,9 +11,15 @@ const ALLOWED_AUDIO_HOSTS = new Set([
   "sp-ad-cf.audio.tidal.com",
 ]);
 
+const ALLOWED_IMAGE_HOSTS = new Set([
+  "resources.tidal.com",
+  "images.tidal.com",
+]);
+
 const ALLOWED_ORIGINS = new Set([
   "https://tidal-dl.pages.dev",
   "https://tidal.odskyler.com",
+  "https://music.odskyler.com",
 ]);
 
 app.get("/proxy/segment", async (request, reply) => {
@@ -118,6 +124,85 @@ app.get("/proxy/segment", async (request, reply) => {
 
     return reply.code(502).send({
       error: "Failed to fetch TIDAL segment",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+app.get("/image", async (request, reply) => {
+  const { url } = request.query as { url?: string };
+
+  if (!url) {
+    return reply.code(400).send({
+      error: "Missing url parameter",
+    });
+  }
+
+  let target: URL;
+
+  try {
+    target = new URL(url);
+  } catch {
+    return reply.code(400).send({
+      error: "Invalid URL",
+    });
+  }
+
+  // Only allow HTTPS TIDAL image hosts.
+  if (
+    target.protocol !== "https:" ||
+    !ALLOWED_IMAGE_HOSTS.has(target.hostname)
+  ) {
+    return reply.code(403).send({
+      error: "Image host not allowed",
+    });
+  }
+
+  try {
+    const response = await fetch(target, {
+      method: "GET",
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+      },
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!response.ok) {
+      return reply.code(response.status).send({
+        error: "Failed to fetch image",
+      });
+    }
+
+    const contentType = response.headers.get("content-type");
+
+    // Only return actual images.
+    if (!contentType?.startsWith("image/")) {
+      return reply.code(415).send({
+        error: "Upstream response is not an image",
+      });
+    }
+
+    reply.header("Content-Type", contentType);
+    reply.header(
+      "Cache-Control",
+      "public, max-age=86400, s-maxage=86400",
+    );
+    reply.header("Access-Control-Allow-Origin", "*");
+
+    const contentLength = response.headers.get("content-length");
+
+    if (contentLength) {
+      reply.header("Content-Length", contentLength);
+    }
+
+    return reply.send(response.body);
+
+  } catch (error) {
+    request.log.error(error, "TIDAL image proxy failed");
+
+    return reply.code(502).send({
+      error: "Failed to fetch TIDAL image",
       message: error instanceof Error ? error.message : String(error),
     });
   }
